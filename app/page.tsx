@@ -41,8 +41,10 @@ function floodFill(ctx: CanvasRenderingContext2D, x: number, y: number, color: s
   if (target.every((value, index) => index === 3 || Math.abs(value - fill[index]) < 3)) return empty
   const queue: number[] = [py0 * width + px0]
   const seen = new Uint8Array(width * height)
+  let filledPixels = 0
+  const maxFillPixels = Math.floor(width * height * .72)
   const isOpen = (pos: number) => { const i = pos * 4; const brightness = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3; const edge = Math.min(pixels[i], pixels[i + 1], pixels[i + 2]); return pixels[i + 3] > 10 && brightness > 105 && edge > 62 && Math.max(Math.abs(pixels[i] - target[0]), Math.abs(pixels[i + 1] - target[1]), Math.abs(pixels[i + 2] - target[2])) < 38 }
-  while (queue.length && mask.reduce((sum, value) => sum + value, 0) < width * height * .72) { const pos = queue.pop()!; if (pos < 0 || pos >= width * height || seen[pos] || !isOpen(pos)) continue; seen[pos] = 1; mask[pos] = 1; const px = pos % width; const py = Math.floor(pos / width); bounds.left = Math.min(bounds.left, px); bounds.right = Math.max(bounds.right, px); bounds.top = Math.min(bounds.top, py); bounds.bottom = Math.max(bounds.bottom, py); queue.push(pos - 1, pos + 1, pos - width, pos + width) }
+  while (queue.length && filledPixels < maxFillPixels) { const pos = queue.pop()!; if (pos < 0 || pos >= width * height || seen[pos] || !isOpen(pos)) continue; seen[pos] = 1; mask[pos] = 1; filledPixels += 1; const px = pos % width; const py = Math.floor(pos / width); bounds.left = Math.min(bounds.left, px); bounds.right = Math.max(bounds.right, px); bounds.top = Math.min(bounds.top, py); bounds.bottom = Math.max(bounds.bottom, py); queue.push(pos - 1, pos + 1, pos - width, pos + width) }
   if (!mask[(py0 * width) + px0]) return empty
   for (let pos = 0; pos < mask.length; pos++) if (mask[pos]) { const i = pos * 4; pixels[i] = fill[0]; pixels[i + 1] = fill[1]; pixels[i + 2] = fill[2]; pixels[i + 3] = 255 }
   ctx.putImageData(image, 0, 0)
